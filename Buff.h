@@ -1,59 +1,73 @@
-#pragma once
+//#pragma once
 
 #include <iostream>
 #include <string>
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <time.h>
 using namespace std;
 
 template <typename T>
 class Buff
 {
 public:
-	void randomThread();
-	void inputThread();
-	void twoThreads();
-	void printBuffer();
+	Buff(int s);
+	bool canWrite();
+	bool canRead();
+	void writeToBuffer(char);
+	void readFromBuffer();
 private:
-	char buf[10];
-	char ch;
-	int counter = 10;
+	T* buf;
+	int posWrite = 0;
+	int posRead = 0;
+	int size;
 };
 
-// prints a random letter every .1 second to console
 template<typename T>
-inline void Buff<T>::randomThread()
+inline Buff<T>::Buff(int s)
 {
-	cout << "\t";
-		char random;
-		for (int i = 0 ; i < counter; i++) {
-			random = rand() % 26 + 97;
-			cout << random<< ' ';
-			buf[i] = random;
-			this_thread::sleep_for(chrono::milliseconds(100));
-		}
-		cout << endl;
+	buf = new T[s];
+	size = s;
 }
 
-// prints keyboard input to console
+// check if buffer can write to current position
 template<typename T>
-inline void Buff<T>::inputThread()
-{}
-
-// creates two threads both printing to console
-template<typename T>
-inline void Buff<T>::twoThreads()
-{}
-
-// prints the circular buffer
-template<typename T>
-inline void Buff<T>::printBuffer()
+inline bool Buff<T>::canWrite()
 {
-	cout << "buf:\t";
-	for (int i = 0; i < counter; i++) {
-		cout << buf[i] << ' ';
+	if (posRead <= posWrite) { return true; }
+	return false;
+}
+
+// check if buffer can read from current position
+template<typename T>
+inline bool Buff<T>::canRead()
+{
+	if (posWrite != posRead) { return false; }
+//	else return true;
+}
+
+// writes input to buffer
+template<typename T>
+inline void Buff<T>::writeToBuffer(char ch)
+{
+	if(canWrite()) { 
+		buf[posWrite] = ch;
+		if (posWrite == 10) { posWrite = 0; }
+		else posWrite++;
 	}
-	cout << endl;
+}
+
+// prints buffer to console
+template<typename T>
+inline void Buff<T>::readFromBuffer()
+{
+	if (canRead()) {
+		cout << posRead;
+		if (posRead == 10) { 
+			cout << "\n";
+			posRead = 0; }
+		else posRead++;
+	}
 }
 
