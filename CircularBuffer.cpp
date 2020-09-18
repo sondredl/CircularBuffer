@@ -31,9 +31,9 @@ int main()
 	srand(time(NULL));
 	Buff<char> *buffer = new Buff<char> (10);
 
-	thread readConsole(readInput, &buffer);
-	thread readRB(readFromBuffer, &buffer);
-	thread writeRandom(writeBufferToConsole, &buffer);
+	thread readConsole(readInput, buffer);
+	thread readRB(readFromBuffer, buffer);
+	thread writeRandom(writeBufferToConsole, buffer);
 	readConsole.join();
 	readRB.join();
 	writeRandom.join();
