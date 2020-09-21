@@ -17,11 +17,15 @@ public:
 	bool canWrite();
 	bool canRead();
 	void writeToBuffer(char);
-	void readFromBuffer();
+	T readFromBuffer();
+	int getWrite();
+	int getRead();
+	void sleep();
+	void wait();
 private:
 	T* buf;
-	int posWrite = 0;
-	int posRead = 0;
+	int posWrite;
+	int posRead;
 	int size;
 };
 
@@ -30,6 +34,8 @@ inline Buff<T>::Buff(int s)
 {
 	buf = new T[s];
 	size = s;
+	posRead = 0;
+	posWrite = 0;
 }
 
 template<typename T>
@@ -42,6 +48,7 @@ inline Buff<T>::~Buff()
 template<typename T>
 inline bool Buff<T>::canWrite()
 {
+	sleep();
 	if (posRead <= posWrite) { return true; }
 	return false;
 }
@@ -50,14 +57,16 @@ inline bool Buff<T>::canWrite()
 template<typename T>
 inline bool Buff<T>::canRead()
 {
-	if (posWrite != posRead) { return false; }
-//	else return true;
+	sleep();
+	if (posWrite >= posRead) { return true; }
+	else return false;
 }
 
 // writes input to buffer
 template<typename T>
 inline void Buff<T>::writeToBuffer(char ch)
 {
+	sleep();
 	if(canWrite()) { 
 		buf[posWrite] = ch;
 		if (posWrite == 10) { posWrite = 0; }
@@ -65,16 +74,40 @@ inline void Buff<T>::writeToBuffer(char ch)
 	}
 }
 
-// prints buffer to console
+// returns content of buffer postion to be read
 template<typename T>
-inline void Buff<T>::readFromBuffer()
+inline T Buff<T>::readFromBuffer()
 {
-	if (canRead()) {
-		cout << buf[posRead];
+	T ch = buf[posRead];
 		if (posRead == 10) { 
 			cout << "\n";
 			posRead = 0; }
 		else posRead++;
-	}
+	return ch;
+}
+
+template<typename T>
+inline int Buff<T>::getWrite()
+{
+	return posWrite;
+}
+
+template<typename T>
+inline int Buff<T>::getRead()
+{
+	return posRead;
+}
+
+template<typename T>
+inline void Buff<T>::sleep()
+{
+	cout << "posWrite:" << posWrite << "  posRead: " << posRead << endl;
+	this_thread::sleep_for(chrono::milliseconds(500));
+}
+
+template<typename T>
+inline void Buff<T>::wait()
+{
+	while (cin);
 }
 
