@@ -13,6 +13,7 @@ class Buff
 {
 public:
 	Buff(int s);
+	~Buff();
 	bool canWrite();
 	bool canRead();
 	void writeToBuffer(char);
@@ -29,6 +30,12 @@ inline Buff<T>::Buff(int s)
 {
 	buf = new T[s];
 	size = s;
+}
+
+template<typename T>
+inline Buff<T>::~Buff()
+{
+	delete buf[T];
 }
 
 // check if buffer can write to current position
@@ -63,7 +70,7 @@ template<typename T>
 inline void Buff<T>::readFromBuffer()
 {
 	if (canRead()) {
-		cout << posRead;
+		cout << buf[posRead];
 		if (posRead == 10) { 
 			cout << "\n";
 			posRead = 0; }
