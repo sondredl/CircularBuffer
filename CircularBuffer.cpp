@@ -11,28 +11,21 @@ char createRandomChar() {
 	return 'a';
 }
 
-// reads value  from console or randomly generated
+// writes input to buffer
 void writeConsoleToBuffer(Buff<char>* bufferPtr) {
 	while (true) {
-		if (bufferPtr->canWrite()) {
-//			this_thread::sleep_for(chrono::milliseconds(200));
-//			unique_lock<mutex> threadLock(writeLock);
-			char ch;
-			cin.get(ch);
-			bufferPtr->writeToBuffer(ch); 
-//			readCv.notify_all();
-
-		}
+//		unique_lock<mutex> threadLock(writeLock);
+		char ch;
+		cin.get(ch);
+		bufferPtr->writeToBuffer(ch); 
+//		readCv.notify_all();
 	}
 }
 
-// reads value from Circular Buffer
-void writeRandomToBuffer(Buff<char>* bufferPtr) 
-{
-	while (true) {
-		if (bufferPtr->canWrite()) {
-			bufferPtr->writeToBuffer(createRandomChar());
-		}
+// writes random to buffer
+void writeRandomToBuffer(Buff<char>* bufferPtr){
+	while(true){
+		bufferPtr->writeToBuffer(createRandomChar());	
 	}
 }
 
@@ -40,28 +33,23 @@ void writeRandomToBuffer(Buff<char>* bufferPtr)
 void readBufferToConsole(Buff<char>* bufferPtr) 
 {
 	while (true) {
-		if (bufferPtr->canRead()) {
-//			this_thread::sleep_for(chrono::milliseconds(200));
-			char ch = bufferPtr->readFromBuffer();
-			cout << ch << ' ';
-		}
-		
-//		cout << "get write: " << bufferPtr->getWrite() << "  get read: " << bufferPtr->canRead() << endl;
+		this_thread::sleep_for(chrono::milliseconds(200));
+		char ch = bufferPtr->readFromBuffer();
+		cout << ch << ' ';
 	}
-}
+}		
 
 int main()
 {
 	srand(time(NULL));
-	Buff<char> *buffer = new Buff<char> (10);
-//	for(int i = 0; i < 10; i++) { cout << createRandomChar() << "\n"; }
+	Buff<char>* bufferPtr = new Buff<char> (10);
 
-	thread readConsole(writeConsoleToBuffer, buffer);
-	thread readRB(writeRandomToBuffer, buffer);
-	thread writeRandom(readBufferToConsole, buffer);
+	thread writeRandom(writeRandomToBuffer, bufferPtr);
+	thread writeInputToBuffer(writeConsoleToBuffer, bufferPtr);
+	thread readBuffer(readBufferToConsole, bufferPtr);
 
-	readConsole.join();
-	readRB.join();
 	writeRandom.join();
+	writeInputToBuffer.join();
+	readBuffer.join();
 }
 

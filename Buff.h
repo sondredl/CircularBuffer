@@ -6,6 +6,7 @@
 #include <chrono>
 #include <mutex>
 #include <time.h>
+#include <condition_variable>
 using namespace std;
 
 template <typename T>
@@ -14,15 +15,16 @@ class Buff
 public:
 	Buff(int s);
 	~Buff();
+	T readFromBuffer();
+	void writeToBuffer(char);
+private:
+	int nextIndex(int);
 	bool canWrite();
 	bool canRead();
-	void writeToBuffer(char);
-	T readFromBuffer();
 	int getWrite();
 	int getRead();
-	void sleep();
+	void delay();
 	void wait();
-private:
 	T* buf;
 	int posWrite;
 	int posRead;
@@ -41,32 +43,33 @@ inline Buff<T>::Buff(int s)
 template<typename T>
 inline Buff<T>::~Buff()
 {
-	delete buf[T];
+	delete buf;
+}
+
+template <typename T>
+int Buff<T>::nextIndex(int i)
+{
+	return (i + 1) % size; // sirkulerer fra 1 til size
 }
 
 // check if buffer can write to current position
 template<typename T>
 inline bool Buff<T>::canWrite()
 {
-	sleep();
-	if (posRead <= posWrite) { return true; }
-	return false;
+	return nextIndex(posWrite) == posRead;
 }
 
 // check if buffer can read from current position
 template<typename T>
 inline bool Buff<T>::canRead()
 {
-	sleep();
-	if (posWrite >= posRead) { return true; }
-	else return false;
+	return posWrite == posRead;
 }
 
 // writes input to buffer
 template<typename T>
 inline void Buff<T>::writeToBuffer(char ch)
 {
-	sleep();
 	if(canWrite()) { 
 		buf[posWrite] = ch;
 		if (posWrite == 10) { posWrite = 0; }
@@ -79,11 +82,9 @@ template<typename T>
 inline T Buff<T>::readFromBuffer()
 {
 	T ch = buf[posRead];
-		if (posRead == 10) { 
-			cout << "\n";
-			posRead = 0; }
-		else posRead++;
-	return ch;
+	if(canRead()){
+		return ch;
+	}
 }
 
 template<typename T>
@@ -99,9 +100,8 @@ inline int Buff<T>::getRead()
 }
 
 template<typename T>
-inline void Buff<T>::sleep()
+inline void Buff<T>::delay()
 {
-	cout << "posWrite:" << posWrite << "  posRead: " << posRead << endl;
 	this_thread::sleep_for(chrono::milliseconds(500));
 }
 
